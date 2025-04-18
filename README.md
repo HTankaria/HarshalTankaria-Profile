@@ -12,7 +12,6 @@
 - 🧠 **Embedded ML on STM32** – Using Edge Impulse & STM32Cube.AI to deploy real-time inference  
 - 📡 **Adaptive RF Control** – Building control systems for efficient RF power delivery  
 - 🔐 **OTA + Secure Firmware** – RTOS-based multi-SKU firmware with OTA support  
-- 📘 **RF Self-Test Modules** – Developing reusable modules for embedded test + diagnostics
 
 > These are part of my independent learning and open-source exploration efforts.
 
@@ -29,7 +28,6 @@
 - Publish technical whitepapers on RF+AI control
 - Build TinyML demos on STM32 boards
 - Contribute to open embedded ML tools
-- Expand platform-based firmware architecture
 
 ---
 
