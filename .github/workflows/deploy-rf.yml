@@ -1,9 +1,9 @@
-name: Deploy PowerStack to GitHub Pages
+name: Deploy RF Power Design Assistant to GitHub Pages
 
 on:
   push:
     branches: [main, claude/powerstack-ev-ai-power-designer]
-    paths: [powerstack/**, .github/workflows/deploy-powerstack.yml]
+    paths: [rf-power-assistant/**, .github/workflows/deploy-rf.yml]
   workflow_dispatch:
 
 permissions:
@@ -19,13 +19,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: powerstack/package-lock.json
+          cache-dependency-path: rf-power-assistant/package-lock.json
 
       - run: npm ci
-        working-directory: powerstack
+        working-directory: rf-power-assistant
 
       - run: npm run build
-        working-directory: powerstack
+        working-directory: rf-power-assistant
         env:
           GITHUB_PAGES: "true"
 
@@ -33,6 +33,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: powerstack/dist
-          destination_dir: powerstack
+          publish_dir: rf-power-assistant/dist
+          destination_dir: rf
           keep_files: true
