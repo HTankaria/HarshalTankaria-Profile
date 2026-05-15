@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-slate-950 text-white antialiased; }
+  * { box-sizing: border-box; }
+  select option { background-color: #1e293b; color: white; }
+}
+
+@layer utilities {
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+
+@media print {
+  body { background: white !important; color: black !important; }
+  .no-print { display: none !important; }
+  nav { display: none !important; }
+  button { display: none !important; }
+  * { color: black !important; background: white !important; border-color: #e2e8f0 !important; }
+}
