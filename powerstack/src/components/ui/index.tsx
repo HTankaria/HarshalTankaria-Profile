@@ -15,15 +15,22 @@ interface InputProps {
 }
 
 export function InputField({ label, value, onChange, type = 'number', unit, min, max, step, help }: InputProps) {
+  const [local, setLocal] = React.useState(String(value));
+  React.useEffect(() => { setLocal(String(value)); }, [value]);
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type={type}
-          value={value}
+          value={local}
           min={min} max={max} step={step}
-          onChange={e => onChange(e.target.value)}
+          onChange={e => setLocal(e.target.value)}
+          onBlur={() => {
+            const n = parseFloat(local);
+            if (!isNaN(n)) onChange(local);
+            else setLocal(String(value));
+          }}
           className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
         />
         {unit && <span className="text-xs text-slate-400 w-12 shrink-0">{unit}</span>}
