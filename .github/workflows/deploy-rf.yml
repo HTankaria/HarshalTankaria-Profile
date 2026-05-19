@@ -1,0 +1,38 @@
+name: Deploy RF Power Design Assistant to GitHub Pages
+
+on:
+  push:
+    branches: [main, claude/powerstack-ev-ai-power-designer, claude/rf-power-design-assistant-dxZQb]
+    paths: [rf-power-assistant/**, .github/workflows/deploy-rf.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: rf-power-assistant/package-lock.json
+
+      - run: npm ci
+        working-directory: rf-power-assistant
+
+      - run: npm run build
+        working-directory: rf-power-assistant
+        env:
+          GITHUB_PAGES: "true"
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: rf-power-assistant/dist
+          destination_dir: rf
+          keep_files: true
