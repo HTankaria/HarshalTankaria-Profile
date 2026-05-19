@@ -18,8 +18,9 @@ import { DirectionalCoupler } from './components/generator/DirectionalCoupler';
 import { ControlSystem } from './components/generator/ControlSystem';
 import { GeneratorReport } from './components/generator/GeneratorReport';
 import { Zap, RadioTower, Waves } from 'lucide-react';
+import { OnboardingModal } from './components/OnboardingModal';
 
-// ─── System Design (existing 7-step wizard) ────────────────────────────────
+// ─── System Design (7-step wizard) ────────────────────────────────────────
 
 const STEP_COMPONENTS: Record<number, React.ComponentType> = {
   1: Step1SystemConfig,  2: Step2PlasmaLoad,    3: Step3MatchingNetwork,
@@ -31,14 +32,17 @@ function SystemDesignApp() {
   const { state } = useStore();
   const StepComponent = STEP_COMPONENTS[state.currentStep] ?? Step1SystemConfig;
   return (
-    <div className="flex-1 max-w-6xl mx-auto w-full px-4 py-6 flex gap-6 pb-24 md:pb-6">
-      <StepIndicator />
-      <main className="flex-1 min-w-0">
-        <div className="rounded-2xl border border-slate-800 bg-slate-800/30 backdrop-blur p-5 md:p-6">
-          <StepComponent />
-        </div>
-      </main>
-    </div>
+    <>
+      <OnboardingModal />
+      <div className="flex-1 max-w-6xl mx-auto w-full px-4 py-6 flex gap-6 pb-24 md:pb-6">
+        <StepIndicator />
+        <main className="flex-1 min-w-0">
+          <div className="rounded-2xl border border-slate-800 bg-slate-800/30 backdrop-blur p-5 md:p-6">
+            <StepComponent />
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
 

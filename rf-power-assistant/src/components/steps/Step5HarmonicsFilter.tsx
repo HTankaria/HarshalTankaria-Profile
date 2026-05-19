@@ -2,11 +2,12 @@ import React from 'react';
 import { Filter, CheckCircle, XCircle } from 'lucide-react';
 import { ResultCard } from '../ui/ResultCard';
 import { Badge } from '../ui/Badge';
+import { SelectField } from '../ui/SelectField';
 import { useStore } from '../../store/useStore';
 import { formatValue, formatFreq } from '../../calculations/rfCalc';
 
 export function Step5HarmonicsFilter() {
-  const { state, runHarmonicFilter, setStep } = useStore();
+  const { state, runHarmonicFilter, updateSystemConfig, setStep } = useStore();
   const { harmonicFilterResult: res, systemConfig } = state;
   const f = systemConfig.primaryFrequency;
 
@@ -45,13 +46,26 @@ export function Step5HarmonicsFilter() {
         <p className="text-xs text-slate-500 mt-2">FCC Part 18 limit: −40 dBc at all harmonics</p>
       </div>
 
-      <button
-        onClick={runHarmonicFilter}
-        className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-4 py-3 rounded-lg text-sm font-semibold transition-colors"
-      >
-        <Filter size={16} />
-        Design MHCN™ Harmonic Filter
-      </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+        <SelectField
+          label="Filter Order"
+          value={String(systemConfig.filterOrder ?? 7)}
+          onChange={v => updateSystemConfig({ filterOrder: parseInt(v) as 5 | 7 | 9 })}
+          hint="Higher order → more attenuation, more components"
+          options={[
+            { value: '5', label: '5th-order — ~30 dB @ 2f, 3 C + 2 L' },
+            { value: '7', label: '7th-order — ~42 dB @ 2f, standard' },
+            { value: '9', label: '9th-order — ~54 dB @ 2f, 5 C + 4 L' },
+          ]}
+        />
+        <button
+          onClick={runHarmonicFilter}
+          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-4 py-3 rounded-lg text-sm font-semibold transition-colors"
+        >
+          <Filter size={16} />
+          Design MHCN™ Harmonic Filter
+        </button>
+      </div>
 
       {res && (
         <div className="flex flex-col gap-4">

@@ -38,6 +38,8 @@ export interface SystemConfig {
   operatingPressure: number;       // mTorr
   procesGas: string;
   ambientTemp: number;             // °C
+  filterOrder: 5 | 7 | 9;         // Butterworth LP harmonic filter order
+  qTarget: number;                 // Pi / T network Q factor target (2–12)
 }
 
 // ─── Plasma Load Characterization (Step 2) ──────────────────────────────────
