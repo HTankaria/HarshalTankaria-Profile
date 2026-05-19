@@ -1,11 +1,12 @@
-import React from 'react';
-import { Cpu, Zap, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cpu, Zap, Settings, ChevronDown, ChevronUp, AlertTriangle, Info, AlertCircle } from 'lucide-react';
 import { InputField } from '../ui/InputField';
 import { SelectField } from '../ui/SelectField';
 import { Badge } from '../ui/Badge';
 import { useStore } from '../../store/useStore';
 import type { ToolType } from '../../types';
-import { formatFreq } from '../../calculations/rfCalc';
+import { formatFreq, validateSystemPhysics, TOOL_PHYSICS } from '../../calculations/rfCalc';
+import type { PhysicsWarning } from '../../calculations/rfCalc';
 
 const TOOL_OPTIONS = [
   { value: 'CCP_ETCH',      label: 'CCP Etch (Capacitively Coupled Plasma)' },
@@ -39,10 +40,32 @@ const TOOL_INFO: Record<ToolType, { desc: string; typicalPower: string; freqRang
   CUSTOM:        { desc: 'User-defined RF plasma or power delivery system', typicalPower: 'User-defined', freqRange: 'User-defined' },
 };
 
+function WarningBanner({ w }: { w: PhysicsWarning }) {
+  const styles = {
+    error: 'bg-red-500/10 border-red-500/30 text-red-300',
+    warn:  'bg-amber-500/10 border-amber-500/30 text-amber-300',
+    info:  'bg-blue-500/10 border-blue-500/30 text-blue-300',
+  } as const;
+  const Icon = w.severity === 'error' ? AlertCircle : w.severity === 'warn' ? AlertTriangle : Info;
+  return (
+    <div className={`rounded-lg border p-3 text-xs flex gap-2 items-start ${styles[w.severity]}`}>
+      <Icon size={14} className="shrink-0 mt-0.5" />
+      <span className="leading-relaxed">{w.message}</span>
+    </div>
+  );
+}
+
 export function Step1SystemConfig() {
   const { state, updateSystemConfig, setStep } = useStore();
   const cfg = state.systemConfig;
   const info = TOOL_INFO[cfg.toolType];
+  const physics = TOOL_PHYSICS[cfg.toolType] ?? TOOL_PHYSICS.CUSTOM;
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const warnings = validateSystemPhysics(cfg, state.plasmaLoad.states.length ? state.plasmaLoad.states : undefined);
+
+  const area_cm2 = Math.PI * (cfg.chamberDiameter / 20) ** 2;
+  const powerDensity = (cfg.primaryPower / area_cm2).toFixed(2);
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,6 +95,10 @@ export function Step1SystemConfig() {
             <Badge color="blue">Power: {info.typicalPower}</Badge>
             <Badge color="purple">Freq: {info.freqRange}</Badge>
           </div>
+        </div>
+        {/* EE-specific note */}
+        <div className="rounded-lg border border-slate-700/50 bg-slate-800/20 px-3 py-2 text-xs text-slate-400 leading-relaxed">
+          <span className="text-blue-400 font-semibold mr-1.5">EE note:</span>{physics.eeNote}
         </div>
       </div>
 
@@ -149,12 +176,57 @@ export function Step1SystemConfig() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <InputField label="Chamber Diameter" value={cfg.chamberDiameter} onChange={v => updateSystemConfig({ chamberDiameter: Number(v) })} unit="mm" />
           <InputField label="Electrode Gap" value={cfg.electrodeGap} onChange={v => updateSystemConfig({ electrodeGap: Number(v) })} unit="mm" hint="CCP gap spacing" />
-          <InputField label="Pressure" value={cfg.operatingPressure} onChange={v => updateSystemConfig({ operatingPressure: Number(v) })} unit="mTorr" />
+          <InputField label="Pressure" value={cfg.operatingPressure} onChange={v => updateSystemConfig({ operatingPressure: Number(v) })} unit="mTorr"
+            hint={`Typical ${cfg.toolType}: ${physics.pressureRange[0]}–${physics.pressureRange[1]} mTorr`} />
           <InputField label="Source Impedance" value={cfg.sourceImpedance} onChange={v => updateSystemConfig({ sourceImpedance: Number(v) })} unit="Ω" hint="50 Ω standard" />
-          <InputField label="Ambient Temp" value={cfg.ambientTemp} onChange={v => updateSystemConfig({ ambientTemp: Number(v) })} unit="°C" />
+          <InputField label="Ambient Temp" value={cfg.ambientTemp} onChange={v => updateSystemConfig({ ambientTemp: Number(v) })} unit="°C"
+            hint="For thermal analysis. Enclosed rack: 40–55°C" />
+          <InputField label="Power Density" value={powerDensity} onChange={() => {}} unit="W/cm²" disabled
+            hint={`Limit: ${physics.powerDensityLimit} W/cm² for ${cfg.toolType}`} />
           <InputField label="Process Gas" value={cfg.procesGas} onChange={v => updateSystemConfig({ procesGas: v })} type="text" />
         </div>
       </div>
+
+      {/* Advanced Design Handles */}
+      <div className="rounded-xl border border-slate-700 overflow-hidden">
+        <button
+          onClick={() => setShowAdvanced(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/60 hover:bg-slate-800 transition-colors text-sm font-medium text-slate-300"
+        >
+          <span>Advanced RF Design Handles</span>
+          {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </button>
+        {showAdvanced && (
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800/20">
+            <SelectField
+              label="Harmonic Filter Order"
+              value={String(cfg.filterOrder ?? 7)}
+              onChange={v => updateSystemConfig({ filterOrder: parseInt(v) as 5 | 7 | 9 })}
+              hint="5th ≈ 30 dB @ 2f · 7th ≈ 42 dB (standard) · 9th ≈ 54 dB"
+              options={[
+                { value: '5', label: '5th-order — compact, 3C + 2L' },
+                { value: '7', label: '7th-order — SEMI standard, 4C + 3L' },
+                { value: '9', label: '9th-order — highest rejection, 5C + 4L' },
+              ]}
+            />
+            <InputField
+              label="Pi/T Network Q Target"
+              value={cfg.qTarget ?? 5}
+              onChange={v => updateSystemConfig({ qTarget: Math.max(1, Math.min(12, Number(v))) })}
+              unit="" min={1} max={12} step={0.5}
+              hint="Higher Q = better harmonic rejection + higher component voltages"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Physics Validation */}
+      {warnings.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Physics Validation</p>
+          {warnings.map((w, i) => <WarningBanner key={i} w={w} />)}
+        </div>
+      )}
 
       {/* CTA */}
       <button

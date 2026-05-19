@@ -373,39 +373,34 @@ export function analyseTransmissionLine(
  * efficiency—a key differentiator from conventional separate-filter design.
  */
 export function designHarmonicFilter(
-  freq: number, power: number, sourceZ: number,
+  freq: number, power: number, sourceZ: number, order: 5 | 7 | 9 = 7,
 ): HarmonicFilterResult {
   const omega = 2 * Math.PI * freq;
-  // FCC Part 18 / SEMI E33: harmonics must be at least 40 dB below carrier
-  const requiredAtten = 40;
+  const requiredAtten = 40; // FCC Part 18 / SEMI E33
 
-  // 5th-order Butterworth LP achieves: 20·log10((f_h/fc)^5) @ harmonic
-  // For 2nd harmonic (f_h = 2f): need order n such that 20n·log10(2) ≥ 40 → n ≥ 6.6 → order 7
-  // We use order 5 (provides 30dB at 2f, 47dB at 3f with fc=1.4f)
-  const order = 7;
-  const fcRatio = 1.35;  // fc = 1.35 × fundamental
+  // Butterworth LP prototype g-values: g_k = 2*sin((2k-1)π/(2n)), k=1..n
+  const gValues = Array.from({ length: order }, (_, i) =>
+    2 * Math.sin(((2 * (i + 1) - 1) * Math.PI) / (2 * order))
+  );
+
+  // fcRatio chosen so cutoff is just above fundamental; varies with order
+  // to maintain ~0.05 dB insertion loss at fundamental
+  const fcRatio = order === 5 ? 1.5 : order === 7 ? 1.35 : 1.25;
   const fc = freq * fcRatio;
 
-  // Butterworth normalised element values (order 7, 50Ω both ends)
-  const gValues = [1.0000, 1.8019, 1.2470, 2.2169, 1.2470, 1.8019, 1.0000, 1.0000];
   const components: MatchingComponent[] = [];
-
   for (let k = 0; k < order; k++) {
     const g = gValues[k];
     if (k % 2 === 0) {
-      // Shunt capacitor
       const C_val = g / (2 * Math.PI * fc * sourceZ);
       components.push(makeComponent(`CF${k + 1}`, 'C', 'shunt', -1 / (omega * C_val), omega, sourceZ, freq));
     } else {
-      // Series inductor
       const L_val = g * sourceZ / (2 * Math.PI * fc);
       components.push(makeComponent(`LF${k + 1}`, 'L', 'series', omega * L_val, omega, sourceZ, freq));
     }
   }
 
-  // Attenuation at harmonics (Butterworth: A(f) = 10·log10(1 + (f/fc)^(2n)))
   const bwAtten = (fn: number) => 10 * Math.log10(1 + Math.pow(fn / fc, 2 * order));
-
   const atten2f = bwAtten(2 * freq);
   const atten3f = bwAtten(3 * freq);
   const atten5f = bwAtten(5 * freq);
@@ -423,6 +418,96 @@ export function designHarmonicFilter(
     requiredAttenuation: requiredAtten,
     compliant: atten2f >= requiredAtten,
   };
+}
+
+// ─── Physics validation ────────────────────────────────────────────────────────
+
+export interface PhysicsWarning {
+  severity: 'info' | 'warn' | 'error';
+  field?: string;
+  message: string;
+}
+
+export interface ToolPhysics {
+  rRange: [number, number];
+  pressureRange: [number, number];
+  powerDensityLimit: number;    // W/cm²
+  eeNote: string;
+}
+
+export const TOOL_PHYSICS: Record<string, ToolPhysics> = {
+  CCP_ETCH:      { rRange: [1, 50],    pressureRange: [10, 1000],  powerDensityLimit: 1.5,  eeNote: 'Series Rp + capacitive sheath dominates. L-network low-pass is typical. Expect large VSWR excursion during ignition transient.' },
+  ICP_ETCH:      { rRange: [0.5, 15],  pressureRange: [1, 100],    powerDensityLimit: 5.0,  eeNote: 'Very low R_plasma (1–5 Ω). High transformation ratio from 50 Ω. Pi or T-network recommended for better Q control. Arc events less common than CCP.' },
+  DUAL_FREQ_CCP: { rRange: [1, 30],    pressureRange: [10, 500],   powerDensityLimit: 2.0,  eeNote: 'Two independent RF chains at different frequencies. Each chain needs its own matching network. Diplexer may be needed if sharing an electrode.' },
+  PECVD:         { rRange: [5, 100],   pressureRange: [200, 5000], powerDensityLimit: 0.8,  eeNote: 'Higher pressure → higher R_plasma. Impedance well-behaved post-ignition. Low power density limit for film quality — 13.56 or 40 MHz.' },
+  PVD_SPUTTER:   { rRange: [1, 30],    pressureRange: [0.5, 30],   powerDensityLimit: 10.0, eeNote: 'Wide impedance swing at ignition on metallic targets. Arc events very frequent — arc detection < 1 µs mandatory. High power density allowable.' },
+  HDP_CVD:       { rRange: [3, 20],    pressureRange: [1, 50],     powerDensityLimit: 4.0,  eeNote: 'ICP source + CCP bias — two separate RF subsystems. Source often runs 2 kW+ at 13.56 MHz; bias runs 400 kHz or 2 MHz.' },
+  ION_IMPLANT:   { rRange: [5, 50],    pressureRange: [0.1, 10],   powerDensityLimit: 2.0,  eeNote: 'Pulsed RF for PIII. Matching must handle fast pulse rise/fall; duty cycle reduces average power but not peak component stress.' },
+  CUSTOM:        { rRange: [0.1, 1000],pressureRange: [0.01, 10000],powerDensityLimit: 20.0,eeNote: 'No built-in constraints. Verify plasma impedance with VNA. Ensure component ratings cover 2× safety margin on voltage and current.' },
+};
+
+export function validateSystemPhysics(cfg: SystemConfig, states?: PlasmaState[]): PhysicsWarning[] {
+  const warnings: PhysicsWarning[] = [];
+  const physics = TOOL_PHYSICS[cfg.toolType] ?? TOOL_PHYSICS.CUSTOM;
+
+  // Power density
+  const area_cm2 = Math.PI * (cfg.chamberDiameter / 20) ** 2;
+  const pd = cfg.primaryPower / area_cm2;
+  if (pd > physics.powerDensityLimit * 1.5) {
+    warnings.push({ severity: 'error', field: 'primaryPower',
+      message: `Power density ${pd.toFixed(2)} W/cm² is >1.5× the recommended ${physics.powerDensityLimit} W/cm² limit for ${cfg.toolType}. Risk of plasma non-uniformity or hardware damage.` });
+  } else if (pd > physics.powerDensityLimit) {
+    warnings.push({ severity: 'warn', field: 'primaryPower',
+      message: `Power density ${pd.toFixed(2)} W/cm² exceeds recommended limit (${physics.powerDensityLimit} W/cm²) for ${cfg.toolType}. Verify cooling.` });
+  }
+
+  // Pressure range
+  const [pMin, pMax] = physics.pressureRange;
+  if (cfg.operatingPressure < pMin) {
+    warnings.push({ severity: 'warn', field: 'operatingPressure',
+      message: `${cfg.operatingPressure} mTorr is below the typical ${cfg.toolType} range (${pMin}–${pMax} mTorr). Plasma ignition may be difficult; impedance model will be extrapolated.` });
+  } else if (cfg.operatingPressure > pMax) {
+    warnings.push({ severity: 'warn', field: 'operatingPressure',
+      message: `${cfg.operatingPressure} mTorr is above the typical ${cfg.toolType} range (${pMin}–${pMax} mTorr). Verify plasma stability.` });
+  }
+
+  // ISM frequency check
+  const f_MHz = cfg.primaryFrequency / 1e6;
+  const ISM_MHz = [0.4, 2.0, 13.56, 27.12, 40.68, 433.92, 915, 2450];
+  if (!ISM_MHz.some(f => Math.abs(f - f_MHz) / f < 0.02) && cfg.toolType !== 'CUSTOM') {
+    warnings.push({ severity: 'warn', field: 'primaryFrequency',
+      message: `${f_MHz.toFixed(3)} MHz is not an ISM standard frequency. RF enclosure and harmonic suppression are mandatory for FCC/SEMI compliance.` });
+  }
+
+  // Plasma impedance range vs. tool type
+  if (states && states.length > 0) {
+    const [rMin, rMax] = physics.rRange;
+    const ss = states.find(s => s.label.toLowerCase().includes('steady'));
+    const R = ss ? ss.resistance : states[0].resistance;
+    if (R < rMin * 0.5) {
+      warnings.push({ severity: 'warn',
+        message: `Steady-state R_plasma (${R.toFixed(1)} Ω) is much lower than expected for ${cfg.toolType} (${rMin}–${rMax} Ω). Verify with VNA measurement.` });
+    } else if (R > rMax * 2) {
+      warnings.push({ severity: 'warn',
+        message: `Steady-state R_plasma (${R.toFixed(1)} Ω) is much higher than expected for ${cfg.toolType} (${rMin}–${rMax} Ω). Check pressure and gas settings.` });
+    }
+  }
+
+  // High RF voltage warning
+  const Vrms = Math.sqrt(cfg.primaryPower * cfg.sourceImpedance);
+  if (Vrms > 150) {
+    warnings.push({ severity: 'warn',
+      message: `Estimated RF Vrms at source: ${Vrms.toFixed(0)} V → peak ${(Vrms * Math.sqrt(2)).toFixed(0)} V. Capacitor voltage ratings must exceed ${(Vrms * Math.sqrt(2) * 2).toFixed(0)} V (2× safety factor).` });
+  }
+
+  // Advisory for tools with very low plasma R
+  const [rMin2] = physics.rRange;
+  if (rMin2 < 2 && cfg.toolType !== 'CUSTOM') {
+    warnings.push({ severity: 'info',
+      message: `${cfg.toolType} typically has R_plasma < ${rMin2 * 5} Ω. The large impedance ratio (50 Ω → load) drives high Q — Pi or T-network provides better control than L-network.` });
+  }
+
+  return warnings;
 }
 
 // ─── Thermal Analysis (ETCD-RF™) ─────────────────────────────────────────────

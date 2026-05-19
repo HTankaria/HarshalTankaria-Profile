@@ -24,6 +24,8 @@ const DEFAULT_SYS_CONFIG: SystemConfig = {
   operatingPressure: 20,
   procesGas: 'CF4/O2',
   ambientTemp: 25,
+  filterOrder: 7,
+  qTarget: 5,
 };
 
 const DEFAULT_TX_CONFIG: TransmissionLineConfig = {
@@ -63,6 +65,7 @@ interface StoreContextType {
   updateSystemConfig: (cfg: Partial<SystemConfig>) => void;
   updatePlasmaLoad: (load: Partial<PlasmaLoad>) => void;
   autoEstimatePlasma: () => void;
+  updatePlasmaState: (idx: number, patch: Partial<import('../types').PlasmaState>) => void;
   setMatchingTopology: (t: MatchingTopology) => void;
   runMatchingDesign: (Q?: number) => void;
   updateTxLineConfig: (cfg: Partial<TransmissionLineConfig>) => void;
@@ -110,14 +113,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updatePlasmaState = useCallback((idx: number, patch: Partial<import('../types').PlasmaState>) => {
+    setState(s => {
+      const newStates = s.plasmaLoad.states.map((st, i) => i === idx ? { ...st, ...patch } : st);
+      const { R, X } = aitoWeightedImpedance(newStates);
+      return {
+        ...s,
+        plasmaLoad: { ...s.plasmaLoad, states: newStates, effectiveR: R, effectiveX: X },
+      };
+    });
+  }, []);
+
   const setMatchingTopology = useCallback((t: MatchingTopology) => {
     setState(s => ({ ...s, matchingTopology: t }));
   }, []);
 
-  const runMatchingDesign = useCallback((Q = 5) => {
+  const runMatchingDesign = useCallback((Q?: number) => {
     setState(s => {
       const { systemConfig: cfg, plasmaLoad, matchingTopology } = s;
       const Rs = cfg.sourceImpedance;
+      const q = Q ?? cfg.qTarget ?? 5;
       const RL = plasmaLoad.effectiveR;
       const XL = plasmaLoad.effectiveX;
       const f  = cfg.primaryFrequency;
@@ -125,8 +140,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       let result: MatchingNetworkResult;
       switch (matchingTopology) {
         case 'L_HIGHPASS': result = designLNetwork(Rs, RL, XL, f, 'highpass'); break;
-        case 'PI':         result = designPiNetwork(Rs, RL, XL, f, Q); break;
-        case 'T':          result = designTNetwork(Rs, RL, XL, f, Q); break;
+        case 'PI':         result = designPiNetwork(Rs, RL, XL, f, q); break;
+        case 'T':          result = designTNetwork(Rs, RL, XL, f, q); break;
         default:           result = designLNetwork(Rs, RL, XL, f, 'lowpass');
       }
 
@@ -161,7 +176,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const runHarmonicFilter = useCallback(() => {
     setState(s => {
-      const result = designHarmonicFilter(s.systemConfig.primaryFrequency, s.systemConfig.primaryPower, s.systemConfig.sourceImpedance);
+      const result = designHarmonicFilter(
+        s.systemConfig.primaryFrequency,
+        s.systemConfig.primaryPower,
+        s.systemConfig.sourceImpedance,
+        s.systemConfig.filterOrder ?? 7,
+      );
       return { ...s, harmonicFilterResult: result };
     });
   }, []);
@@ -190,7 +210,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   return (
     <StoreContext.Provider value={{
       state, setStep, updateSystemConfig, updatePlasmaLoad,
-      autoEstimatePlasma, setMatchingTopology, runMatchingDesign,
+      autoEstimatePlasma, updatePlasmaState, setMatchingTopology, runMatchingDesign,
       updateTxLineConfig, runTxLineAnalysis, runHarmonicFilter,
       runThermalAnalysis, generateReport,
     }}>

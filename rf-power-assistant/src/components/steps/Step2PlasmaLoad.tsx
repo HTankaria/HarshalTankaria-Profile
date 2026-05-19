@@ -1,13 +1,60 @@
-import React from 'react';
-import { Waves, Sparkles, Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { Waves, Sparkles, Info, Edit2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { InputField } from '../ui/InputField';
 import { ResultCard } from '../ui/ResultCard';
 import { Badge } from '../ui/Badge';
 import { SmithChart } from '../SmithChart';
 import { useStore } from '../../store/useStore';
+import type { PlasmaState } from '../../types';
+
+function EditableStateCard({
+  s, idx, onUpdate, onReset,
+}: { s: PlasmaState; idx: number; onUpdate: (patch: Partial<PlasmaState>) => void; onReset: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const gamma = Math.sqrt(
+    ((s.resistance - 50) ** 2 + s.reactance ** 2) /
+    ((s.resistance + 50) ** 2 + s.reactance ** 2)
+  );
+
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-slate-300">{s.label}</span>
+        <div className="flex items-center gap-1">
+          <Badge color="slate">{(s.probability * 100).toFixed(0)}%</Badge>
+          <button onClick={onReset} title="Reset to PSTAW™ auto value"
+            className="p-1 text-slate-500 hover:text-slate-300 transition-colors rounded"><RotateCcw size={12} /></button>
+          <button onClick={() => setEditing(v => !v)} title={editing ? 'Collapse' : 'Edit state'}
+            className={`p-1 transition-colors rounded ${editing ? 'text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}>
+            <Edit2 size={12} />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-1 text-xs">
+        <span className="text-slate-500">R_plasma:</span>
+        <span className="font-mono text-emerald-400">{s.resistance.toFixed(2)} Ω</span>
+        <span className="text-slate-500">X_plasma:</span>
+        <span className="font-mono text-yellow-400">{s.reactance.toFixed(1)} Ω</span>
+        <span className="text-slate-500">|Γ| (vs 50Ω):</span>
+        <span className="font-mono text-slate-300">{gamma.toFixed(3)}</span>
+      </div>
+      {editing && (
+        <div className="mt-3 pt-3 border-t border-slate-700 grid grid-cols-2 gap-2">
+          <InputField label="Probability" value={s.probability} onChange={v => onUpdate({ probability: Math.max(0, Math.min(1, Number(v))) })}
+            unit="0–1" min={0} max={1} step={0.01} hint="Weight in AITO™ centroid" />
+          <InputField label="R_plasma" value={s.resistance} onChange={v => onUpdate({ resistance: Math.max(0.01, Number(v)) })}
+            unit="Ω" min={0.01} max={5000} />
+          <InputField label="X_plasma" value={s.reactance} onChange={v => onUpdate({ reactance: Number(v) })}
+            unit="Ω" step={1} hint="Negative = capacitive" />
+          <div className="col-span-2 text-xs text-slate-500">Editing overrides PSTAW™. Hit <RotateCcw size={10} className="inline" /> to restore.</div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Step2PlasmaLoad() {
-  const { state, updatePlasmaLoad, autoEstimatePlasma, setStep } = useStore();
+  const { state, updatePlasmaLoad, updatePlasmaState, autoEstimatePlasma, setStep } = useStore();
   const { plasmaLoad, systemConfig } = state;
   const { states, effectiveR, effectiveX } = plasmaLoad;
 
@@ -70,24 +117,43 @@ export function Step2PlasmaLoad() {
             Run PSTAW™ Auto-Estimation
           </button>
 
-          {states.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {states.map((s, i) => (
-                <div key={i} className="rounded-lg border border-slate-700 bg-slate-800/50 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-300">{s.label}</span>
-                    <Badge color="slate">{(s.probability * 100).toFixed(0)}% prob.</Badge>
+          {states.length > 0 && (() => {
+            const probSum = states.reduce((s, st) => s + st.probability, 0);
+            const probOk = Math.abs(probSum - 1) < 0.005;
+            return (
+              <div className="space-y-3">
+                {!probOk && (
+                  <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                    <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                    <span>Probabilities sum to {(probSum * 100).toFixed(1)}% (should be 100%). AITO™ normalises automatically.</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                    <span className="text-slate-500">R:</span>
-                    <span className="font-mono text-emerald-400">{s.resistance.toFixed(2)} Ω</span>
-                    <span className="text-slate-500">X:</span>
-                    <span className="font-mono text-yellow-400">{s.reactance.toFixed(1)} Ω</span>
-                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-500">Click <Edit2 size={10} className="inline" /> to override R/X or probability per state.</p>
+                  <button onClick={autoEstimatePlasma} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                    <RotateCcw size={11} /> Reset all
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {states.map((s, i) => (
+                    <EditableStateCard key={i} s={s} idx={i}
+                      onUpdate={patch => updatePlasmaState(i, patch)}
+                      onReset={() => {
+                        // Re-run PSTAW™ for just this state's fresh value - we can't do per-state reset
+                        // without re-running the full estimation. Instead just run full reset.
+                        autoEstimatePlasma();
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="rounded-lg border border-slate-700/50 bg-slate-800/20 p-2.5 text-xs text-slate-500 leading-relaxed">
+                  <span className="text-blue-400 font-semibold mr-1">Why 4 states?</span>
+                  Real plasma loads are time-varying. Pre-ignition and near-extinction represent worst-case VSWR excursions.
+                  Designing for steady-state only causes reflected power trips during ramp-up/down.
+                </div>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
