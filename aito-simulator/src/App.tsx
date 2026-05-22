@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Zap, Layers, BookOpen, GitBranch } from 'lucide-react';
+import { Zap, Layers, BookOpen, GitBranch, MapPin } from 'lucide-react';
 import { StatesTab } from './components/StatesTab';
 import { RecipesTab } from './components/RecipesTab';
 import { TrajectoryTab } from './components/TrajectoryTab';
+import { TuningMapTab } from './components/TuningMapTab';
 import { DEFAULT_STATES, fmtF } from './calculations/aito';
 import type { ImpedanceState } from './types';
 
-type Tab = 'states' | 'recipes' | 'trajectory';
+type Tab = 'states' | 'recipes' | 'trajectory' | 'tuning';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('states');
@@ -16,9 +17,10 @@ export default function App() {
   const freq = freqMHz * 1e6;
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'states',     label: 'Impedance States', icon: <Layers size={13} /> },
-    { id: 'recipes',    label: 'Recipes',          icon: <BookOpen size={13} /> },
-    { id: 'trajectory', label: 'Tuning Trajectory',icon: <GitBranch size={13} /> },
+    { id: 'states',     label: 'Impedance States',  icon: <Layers size={13} /> },
+    { id: 'recipes',    label: 'Recipes',           icon: <BookOpen size={13} /> },
+    { id: 'tuning',     label: 'Tuning Map',        icon: <MapPin size={13} /> },
+    { id: 'trajectory', label: 'Trajectory',        icon: <GitBranch size={13} /> },
   ];
 
   return (
@@ -92,6 +94,9 @@ export default function App() {
           )}
           {tab === 'recipes' && (
             <RecipesTab onLoad={(s, f) => { setStates(s); setFreqMHz(f / 1e6); setTab('states'); }} />
+          )}
+          {tab === 'tuning' && (
+            <TuningMapTab states={states} freq={freq} Z0={Z0} />
           )}
           {tab === 'trajectory' && (
             <TrajectoryTab states={states} freq={freq} Z0={Z0} />
