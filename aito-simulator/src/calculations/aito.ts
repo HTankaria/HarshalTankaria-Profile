@@ -36,22 +36,103 @@ export function sigmas(states: ImpedanceState[]) {
   return { sigmaR: sR, sigmaX: sX };
 }
 
-// ─── L-network synthesis  (shunt-C load side, series-L source side) ───────────
-// Works when centroidR < Z0 (plasma always satisfies this at 50Ω)
+// ─── L-network synthesis (shunt-C load side, series-L source side) ────────────
+// Full synthesis accounting for load reactance X.
+// For plasma loads (highly capacitive, R << Z0) this topology is valid.
 
-export function synthesisLNetwork(targetR: number, _targetX: number, Z0: number, freq: number): LNetwork {
-  const safeR = Math.max(targetR, 0.5);
-  const Q = Math.sqrt(Math.max(Z0 / safeR - 1, 0.01));
+export function synthesisLNetwork(targetR: number, targetX: number, Z0: number, freq: number): LNetwork {
   const omega = 2 * Math.PI * freq;
-  const B_shunt = Q / safeR;
-  const X_series = Z0 / Q;
-  return {
-    C_shunt: B_shunt / omega,
-    L_series: X_series / omega,
-    Q,
-    designR: targetR,
-    designX: _targetX,
+  const safeR = Math.max(targetR, 0.1);
+
+  // Admittance of load: G + jB
+  const denom = safeR * safeR + targetX * targetX;
+  const G = safeR / denom;
+  const B_load = -targetX / denom;  // note: capacitive X<0 → B_load > 0
+
+  // Solve for shunt susceptance B1 = B_load + ωC such that:
+  // G / (G² + B1²) = Z0  →  B1² = G(1/Z0 − G)
+  const disc = G * (1 / Z0 - G);
+
+  let B1: number;
+  if (disc >= 0) {
+    // Two solutions; pick the one closer to cancelling existing B_load
+    const sqrtDisc = Math.sqrt(disc);
+    const sol1 = sqrtDisc, sol2 = -sqrtDisc;
+    B1 = Math.abs(sol1 - B_load) < Math.abs(sol2 - B_load) ? sol1 : sol2;
+  } else {
+    // G > 1/Z0: load conductance too large; fall back to simple Q match
+    const Q = Math.sqrt(Math.max(Z0 / safeR - 1, 0.01));
+    B1 = Q / safeR - B_load;
+  }
+
+  const ωC = B1 - B_load;           // what the shunt cap must supply (can be negative → use shunt L)
+  const C_shunt = Math.max(ωC / omega, 1e-15);  // clamp to physical value
+
+  // Series inductor cancels remaining imaginary part at junction
+  const G2 = G, B1_actual = B_load + C_shunt * omega;
+  const d2 = G2 * G2 + B1_actual * B1_actual;
+  const X_junction = -B1_actual / d2;  // Im(Z) after shunt element
+  const X_series = -X_junction;        // series L must cancel it
+  const L_series = Math.max(X_series / omega, 1e-15);
+
+  const Q = Math.sqrt(Math.max(Z0 / safeR - 1, 0.01));
+  return { C_shunt, L_series, Q, designR: targetR, designX: targetX };
+}
+
+// ─── Numerical optimiser: grid-search (C, L) to maximise AITO score ───────────
+
+export function optimizeNetwork(
+  states: ImpedanceState[], Z0: number, freq: number,
+): { network: LNetwork; score: number } {
+  if (states.length === 0) return { network: synthesisLNetwork(8, -80, Z0, freq), score: 0 };
+
+  const totalP = states.reduce((s, st) => s + st.probability, 0) || 1;
+
+  function evalScore(C: number, L: number): number {
+    const net: LNetwork = { C_shunt: C, L_series: L, Q: 0, designR: 0, designX: 0 };
+    const wg = states.reduce((s, st) =>
+      s + st.probability * networkResponseAt(st, net, Z0, freq).gamma, 0) / totalP;
+    return 1 - wg;
+  }
+
+  // Coarse log-scale grid
+  const N = 80;
+  const Cmin = 1e-12, Cmax = 200e-9;
+  const Lmin = 1e-9,  Lmax = 100e-6;
+
+  let bestScore = -1, bestC = 100e-12, bestL = 200e-9;
+
+  for (let i = 0; i < N; i++) {
+    const C = Cmin * Math.pow(Cmax / Cmin, i / (N - 1));
+    for (let j = 0; j < N; j++) {
+      const L = Lmin * Math.pow(Lmax / Lmin, j / (N - 1));
+      const s = evalScore(C, L);
+      if (s > bestScore) { bestScore = s; bestC = C; bestL = L; }
+    }
+  }
+
+  // Fine grid around best point (±2 octaves)
+  const M = 50;
+  const Clo = bestC / 4, Chi = bestC * 4;
+  const Llo = bestL / 4, Lhi = bestL * 4;
+
+  for (let i = 0; i < M; i++) {
+    const C = Clo * Math.pow(Chi / Clo, i / (M - 1));
+    for (let j = 0; j < M; j++) {
+      const L = Llo * Math.pow(Lhi / Llo, j / (M - 1));
+      const s = evalScore(C, L);
+      if (s > bestScore) { bestScore = s; bestC = C; bestL = L; }
+    }
+  }
+
+  const omega = 2 * Math.PI * freq;
+  const Q = omega * bestL / Z0;
+  const network: LNetwork = {
+    C_shunt: bestC, L_series: bestL, Q,
+    designR: Z0 / (Q * Q + 1),
+    designX: -1 / (omega * bestC),
   };
+  return { network, score: bestScore };
 }
 
 // ─── Network response at an arbitrary load ────────────────────────────────────

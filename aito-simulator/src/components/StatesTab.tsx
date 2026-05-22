@@ -1,8 +1,9 @@
-import { Plus, Trash2, RotateCcw, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, RotateCcw, Zap, Sparkles } from 'lucide-react';
 import { InputField } from './ui/InputField';
 import { SmithChart } from './SmithChart';
-import { computeAITO, DEFAULT_STATES, STATE_COLORS, fmtC, fmtL, fmtF, gammaMag } from '../calculations/aito';
-import type { ImpedanceState } from '../types';
+import { computeAITO, optimizeNetwork, networkResponseAt, DEFAULT_STATES, STATE_COLORS, fmtC, fmtL, fmtF, gammaMag } from '../calculations/aito';
+import type { ImpedanceState, LNetwork } from '../types';
 
 interface Props {
   states: ImpedanceState[];
@@ -21,9 +22,23 @@ export function StatesTab({ states, setStates, freq, Z0 }: Props) {
   const result = computeAITO(states, Z0, freq);
   const probSum = states.reduce((s, st) => s + st.probability, 0);
   const probOk = Math.abs(probSum - 1) < 0.005;
+  const [optimized, setOptimized] = useState<{ network: LNetwork; score: number } | null>(null);
+  const [optimizing, setOptimizing] = useState(false);
 
   function update(id: string, patch: Partial<ImpedanceState>) {
     setStates(states.map(s => s.id === id ? { ...s, ...patch } : s));
+    setOptimized(null);
+  }
+
+  function runOptimize() {
+    setOptimizing(true);
+    setOptimized(null);
+    // defer to next tick so React can render the loading state
+    setTimeout(() => {
+      const result = optimizeNetwork(states, Z0, freq);
+      setOptimized(result);
+      setOptimizing(false);
+    }, 30);
   }
 
   return (
@@ -141,7 +156,7 @@ export function StatesTab({ states, setStates, freq, Z0 }: Props) {
           {/* Per-state matched VSWR */}
           <div className="rounded-lg border border-slate-700 overflow-hidden">
             <div className="px-3 py-1.5 border-b border-slate-700 text-xs font-medium text-slate-400">
-              Matched VSWR per state (AITO™ network)
+              Matched VSWR per state (AITO™ centroid network)
             </div>
             <div className="divide-y divide-slate-700/50">
               {result.stateResults.map((r, i) => (
@@ -156,6 +171,72 @@ export function StatesTab({ states, setStates, freq, Z0 }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Optimize button */}
+          <button
+            onClick={runOptimize}
+            disabled={optimizing || states.length < 2}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-semibold transition-colors"
+          >
+            <Sparkles size={15} />
+            {optimizing ? 'Optimizing…' : 'Optimize'}
+          </button>
+
+          {/* Optimized result */}
+          {optimized && (
+            <div className="rounded-xl border border-violet-600/40 bg-violet-900/10 p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} className="text-violet-400" />
+                  <span className="text-sm font-semibold text-violet-300">Optimized Network</span>
+                  <span className="text-xs text-slate-500">grid-search over (C, L) space</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-500">Before:</span>
+                  <span className="font-mono text-amber-400">{result.score.toFixed(4)}</span>
+                  <span className="text-slate-500">After:</span>
+                  <span className="font-mono text-emerald-400">{optimized.score.toFixed(4)}</span>
+                  <span className={`font-mono font-bold ${optimized.score > result.score ? 'text-emerald-400' : 'text-slate-400'}`}>
+                    (+{((optimized.score - result.score) * 100).toFixed(1)}%)
+                  </span>
+                </div>
+              </div>
+
+              {/* Component values */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="rounded-lg bg-slate-900/60 border border-violet-700/30 p-2.5">
+                  <div className="text-slate-500 mb-1">C_shunt (load side)</div>
+                  <div className="font-mono text-yellow-400 text-sm">{fmtC(optimized.network.C_shunt)}</div>
+                </div>
+                <div className="rounded-lg bg-slate-900/60 border border-violet-700/30 p-2.5">
+                  <div className="text-slate-500 mb-1">L_series (source side)</div>
+                  <div className="font-mono text-purple-400 text-sm">{fmtL(optimized.network.L_series)}</div>
+                </div>
+              </div>
+
+              {/* Per-state VSWR with optimized network */}
+              <div className="rounded-lg border border-slate-700 overflow-hidden">
+                <div className="px-3 py-1.5 border-b border-slate-700 text-xs font-medium text-violet-400">
+                  Matched VSWR per state (Optimized network)
+                </div>
+                <div className="divide-y divide-slate-700/50">
+                  {states.map((st, i) => {
+                    const r = networkResponseAt(st, optimized.network, Z0, freq);
+                    return (
+                      <div key={st.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+                        <div className="w-2 h-2 rounded-full" style={{ background: STATE_COLORS[i % STATE_COLORS.length] }} />
+                        <span className="flex-1 text-slate-300">{st.label}</span>
+                        <span className={`font-mono ${r.vswr < 1.5 ? 'text-emerald-400' : r.vswr < 3 ? 'text-amber-400' : 'text-red-400'}`}>
+                          VSWR {r.vswr > 99 ? '>99' : r.vswr.toFixed(2)}:1
+                        </span>
+                        <span className="font-mono text-slate-500 w-16 text-right">|Γ| {r.gamma.toFixed(3)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
