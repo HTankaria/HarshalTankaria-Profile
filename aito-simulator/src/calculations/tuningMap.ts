@@ -1,69 +1,84 @@
 import type { ImpedanceState } from '../types';
 import { STATE_COLORS } from './aito';
 
-// ─── C1/C2 matchbox topology ──────────────────────────────────────────────────
-// Generator (50Ω) ─── [node A] ─── C2 (series) ─── Plasma (ZL)
+// ─── Standard plasma matchbox topology ───────────────────────────────────────
+//
+//  Generator (50Ω) ── [node A] ── L_fixed (series) ── C2 (series) ── Plasma
 //                         │
 //                        C1 (shunt to GND)
+//
+// C1: variable shunt at generator side
+// L:  fixed series inductor (essential for resonating capacitive plasma)
+// C2: variable series toward plasma
+//
+// Without L, a two-capacitor network cannot resonate out a capacitive plasma
+// load (X < 0). L provides the inductive reactance that cancels plasma X.
 
 export function c1c2Gamma(
   state: ImpedanceState,
   C1_pF: number, C2_pF: number,
+  L_uH: number,
   Z0: number, freq: number,
 ): number {
   const omega = 2 * Math.PI * freq;
   const C1 = C1_pF * 1e-12;
   const C2 = C2_pF * 1e-12;
+  const L  = L_uH * 1e-6;
   const { resistance: R, reactance: X } = state;
 
-  // Series C2 toward plasma: subtracts from load reactance
+  // Step 1 — series C2 (between plasma and L junction)
   const XC2 = C2 > 1e-15 ? -1 / (omega * C2) : -1e9;
-  const RA = R, XA = X + XC2;
+  const R1 = R, X1 = X + XC2;
 
-  // Admittance at node A
-  const dA = RA * RA + XA * XA;
-  const GA = RA / dA;
-  const BA = -XA / dA;
+  // Step 2 — series L (between C2 and shunt node)
+  const R2 = R1, X2 = X1 + omega * L;
 
-  // Add shunt C1
-  const G_in = GA;
-  const B_in = BA + omega * C1;
+  // Step 3 — shunt C1 at node A
+  const d2  = R2 * R2 + X2 * X2;
+  const G2  = R2 / d2;
+  const B2  = -X2 / d2;
+  const Gin = G2;
+  const Bin = B2 + omega * C1;
 
-  // Input impedance
-  const d_in = G_in * G_in + B_in * B_in;
-  const R_in = G_in / d_in;
-  const X_in = -B_in / d_in;
+  // Step 4 — input impedance
+  const din  = Gin * Gin + Bin * Bin;
+  const Rin  = Gin / din;
+  const Xin  = -Bin / din;
 
   // |Γ|
-  const numR = R_in - Z0, numI = X_in;
-  const denR = R_in + Z0, denI = X_in;
-  return Math.sqrt((numR * numR + numI * numI) / (denR * denR + denI * denI));
+  const nR = Rin - Z0, nI = Xin;
+  const dR = Rin + Z0, dI = Xin;
+  return Math.sqrt((nR * nR + nI * nI) / (dR * dR + dI * dI));
 }
 
-// ─── Full map computation ─────────────────────────────────────────────────────
+// ─── Map computation ──────────────────────────────────────────────────────────
+// Metric: probability-weighted mean reflected POWER = Σ pᵢ|Γᵢ|²
+// (not |Γ|, because reflected power is what causes arc trips and heating)
+// Score = 1 − weighted_mean_|Γ|²  (higher = better)
 
 export interface MapResult {
   N: number;
-  c1Values: number[];   // pF (Y axis — shunt at generator)
-  c2Values: number[];   // pF (X axis — series toward plasma)
-  scoreGrid: Float32Array;    // [i*N + j] = AITO score at c1[i], c2[j]
-  worstGrid: Float32Array;    // worst-case |Γ| across states
+  c1Values: number[];
+  c2Values: number[];
+  scoreGrid: Float32Array;   // [i*N+j] = score at c1[i], c2[j]
+  worstGrid: Float32Array;   // worst-case |Γ| (for arc-trip threshold)
   optC1: number; optC2: number; optScore: number;
   perStateOptima: Array<{
     label: string; color: string;
     C1: number; C2: number; gamma: number;
   }>;
-  spreadC1: number;  // pF — range of per-state C1 optima
-  spreadC2: number;  // pF — range of per-state C2 optima
+  spreadC1: number;
+  spreadC2: number;
+  L_uH: number;
 }
 
 export function computeTuningMap(
   states: ImpedanceState[], Z0: number, freq: number,
-  C1max: number, C2max: number, N = 60,
+  C1max: number, C2max: number, L_uH: number, N = 70,
 ): MapResult {
   const c1Values = Array.from({ length: N }, (_, i) => (i / (N - 1)) * C1max);
   const c2Values = Array.from({ length: N }, (_, j) => (j / (N - 1)) * C2max);
-  const totalP = states.reduce((s, st) => s + st.probability, 0) || 1;
+  const totalP   = states.reduce((s, st) => s + st.probability, 0) || 1;
 
   const scoreGrid = new Float32Array(N * N);
   const worstGrid = new Float32Array(N * N);
@@ -72,26 +87,26 @@ export function computeTuningMap(
   for (let i = 0; i < N; i++) {
     for (let j = 0; j < N; j++) {
       const C1 = c1Values[i], C2 = c2Values[j];
-      let weightedG = 0, worstG = 0;
+      let wPow = 0, worstG = 0;
       for (const st of states) {
-        const g = c1c2Gamma(st, C1, C2, Z0, freq);
-        weightedG += st.probability * g;
+        const g  = c1c2Gamma(st, C1, C2, L_uH, Z0, freq);
+        wPow    += st.probability * g * g;          // reflected power
         if (g > worstG) worstG = g;
       }
-      weightedG /= totalP;
-      const score = 1 - weightedG;
+      wPow /= totalP;
+      const score = 1 - wPow;
       scoreGrid[i * N + j] = score;
       worstGrid[i * N + j] = worstG;
       if (score > optScore) { optScore = score; optC1 = C1; optC2 = C2; }
     }
   }
 
-  // Per-state optima
+  // Per-state best positions (individual perfect-match points)
   const perStateOptima = states.map((st, idx) => {
     let best = 1, bestC1 = optC1, bestC2 = optC2;
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < N; j++) {
-        const g = c1c2Gamma(st, c1Values[i], c2Values[j], Z0, freq);
+        const g = c1c2Gamma(st, c1Values[i], c2Values[j], L_uH, Z0, freq);
         if (g < best) { best = g; bestC1 = c1Values[i]; bestC2 = c2Values[j]; }
       }
     }
@@ -100,15 +115,19 @@ export function computeTuningMap(
 
   const c1s = perStateOptima.map(p => p.C1);
   const c2s = perStateOptima.map(p => p.C2);
-  const spreadC1 = Math.max(...c1s) - Math.min(...c1s);
-  const spreadC2 = Math.max(...c2s) - Math.min(...c2s);
 
-  return { N, c1Values, c2Values, scoreGrid, worstGrid, optC1, optC2, optScore, perStateOptima, spreadC1, spreadC2 };
+  return {
+    N, c1Values, c2Values, scoreGrid, worstGrid,
+    optC1, optC2, optScore,
+    perStateOptima,
+    spreadC1: Math.max(...c1s) - Math.min(...c1s),
+    spreadC2: Math.max(...c2s) - Math.min(...c2s),
+    L_uH,
+  };
 }
 
-// ─── Motor position helper ────────────────────────────────────────────────────
-// Typical split-stator variable capacitor: C(θ) ≈ C_min + (C_max−C_min)·sin²(θ)
-// θ in degrees [0, 180]
+// ─── Motor position ───────────────────────────────────────────────────────────
+// Split-stator variable capacitor law: C(θ) = C_max · sin²(θ),  θ ∈ [0°, 90°]
 
 export function pFtoAngle(C_pF: number, C_max_pF: number): number {
   const ratio = Math.max(0, Math.min(1, C_pF / C_max_pF));
@@ -118,7 +137,6 @@ export function pFtoAngle(C_pF: number, C_max_pF: number): number {
 // ─── Score → RGB ──────────────────────────────────────────────────────────────
 
 export function scoreToRgb(score: number): [number, number, number] {
-  // red (0) → amber (0.4) → green (1.0)
   const s = Math.max(0, Math.min(1, score));
   if (s < 0.4) {
     const t = s / 0.4;

@@ -57,6 +57,7 @@ function toCanvasXY(C1: number, C2: number, C1max: number, C2max: number): { x: 
 export function TuningMapTab({ states, freq, Z0 }: Props) {
   const [C1max, setC1max] = useState(2000);
   const [C2max, setC2max] = useState(2000);
+  const [L_uH, setL_uH] = useState(1.0);
   const [result, setResult] = useState<MapResult | null>(null);
   const [computing, setComputing] = useState(false);
   const [hovered, setHovered] = useState<{ C1: number; C2: number; score: number } | null>(null);
@@ -75,7 +76,7 @@ export function TuningMapTab({ states, freq, Z0 }: Props) {
   function compute() {
     setComputing(true);
     setTimeout(() => {
-      const r = computeTuningMap(states, Z0, freq, C1max, C2max, 70);
+      const r = computeTuningMap(states, Z0, freq, C1max, C2max, L_uH, 70);
       setResult(r);
       setComputing(false);
     }, 30);
@@ -129,6 +130,15 @@ export function TuningMapTab({ states, freq, Z0 }: Props) {
             <span className="text-xs text-slate-500">pF</span>
           </div>
         </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-slate-400">L fixed (series)</label>
+          <div className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-2 focus-within:border-blue-500 w-28">
+            <input type="number" value={L_uH} min={0.1} max={20} step={0.1}
+              onChange={e => { setL_uH(Number(e.target.value)); setResult(null); }}
+              className="flex-1 bg-transparent text-sm text-slate-100 outline-none" />
+            <span className="text-xs text-slate-500">µH</span>
+          </div>
+        </div>
         <button onClick={compute} disabled={computing}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-semibold transition-colors">
           <Map size={14} />
@@ -166,7 +176,7 @@ export function TuningMapTab({ states, freq, Z0 }: Props) {
             {/* Heatmap */}
             <div className="flex flex-col gap-2 shrink-0">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>C1 (shunt) ↑  ·  C2 (series) →</span>
+                <span>C1 shunt ↑ · L={L_uH}µH fixed · C2 series →</span>
                 <span className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#b41414' }} /> Low
                   <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#c88014' }} /> Mid
@@ -242,7 +252,7 @@ export function TuningMapTab({ states, freq, Z0 }: Props) {
                 <div className="flex items-center gap-2 mb-2">
                   <Zap size={13} className="text-indigo-400" />
                   <span className="text-xs font-semibold text-indigo-300">AITO™ Optimal Position</span>
-                  <span className="ml-auto text-xs font-mono text-emerald-400">Score {result.optScore.toFixed(3)}</span>
+                  <span className="ml-auto text-xs font-mono text-emerald-400">Score {result.optScore.toFixed(4)} (1−Σp|Γ|²)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {[
