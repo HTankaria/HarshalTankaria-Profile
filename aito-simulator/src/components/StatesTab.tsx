@@ -114,7 +114,8 @@ export function StatesTab({ states, setStates, freq, Z0 }: Props) {
         <div className="rounded-xl border border-indigo-700/40 bg-indigo-900/10 p-4 flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-indigo-400" />
-            <h3 className="text-sm font-semibold text-indigo-300">AITO™ Analysis</h3>
+            <h3 className="text-sm font-semibold text-indigo-300">AITO™ Centroid Network</h3>
+            <span className="text-xs text-slate-500">analytical approximation</span>
             <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-mono"
               style={{ background: result.score > 0.85 ? '#065f4640' : result.score > 0.7 ? '#78350f40' : '#7f1d1d40',
                        color: result.score > 0.85 ? '#34d399' : result.score > 0.7 ? '#fbbf24' : '#f87171',
@@ -188,8 +189,8 @@ export function StatesTab({ states, setStates, freq, Z0 }: Props) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-violet-400" />
-                  <span className="text-sm font-semibold text-violet-300">Optimized Network</span>
-                  <span className="text-xs text-slate-500">grid-search over (C, L) space</span>
+                  <span className="text-sm font-semibold text-violet-300">Power-Optimal Network</span>
+                  <span className="text-xs text-slate-500">minimises Σp|Γ|² — true optimum</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-slate-500">Before:</span>

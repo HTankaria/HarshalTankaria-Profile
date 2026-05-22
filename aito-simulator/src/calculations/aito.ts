@@ -88,11 +88,15 @@ export function optimizeNetwork(
 
   const totalP = states.reduce((s, st) => s + st.probability, 0) || 1;
 
+  // Metric: weighted mean reflected POWER = Σpᵢ|Γᵢ|²
+  // Consistent with tuning map. Arc trips and heating are power-driven.
   function evalScore(C: number, L: number): number {
     const net: LNetwork = { C_shunt: C, L_series: L, Q: 0, designR: 0, designX: 0 };
-    const wg = states.reduce((s, st) =>
-      s + st.probability * networkResponseAt(st, net, Z0, freq).gamma, 0) / totalP;
-    return 1 - wg;
+    const wPow = states.reduce((s, st) => {
+      const g = networkResponseAt(st, net, Z0, freq).gamma;
+      return s + st.probability * g * g;
+    }, 0) / totalP;
+    return 1 - wPow;
   }
 
   // Coarse log-scale grid
@@ -233,7 +237,7 @@ export function computeAITO(
   const ssStateResults = states.map(s => networkResponseAt(s, ssNetwork, Z0, freq));
 
   const totalP = states.reduce((s, st) => s + st.probability, 0) || 1;
-  const score = 1 - stateResults.reduce((s, r, i) => s + states[i].probability * r.gamma, 0) / totalP;
+  const score = 1 - stateResults.reduce((s, r, i) => s + states[i].probability * r.gamma * r.gamma, 0) / totalP;
 
   return { centroidR, centroidX, sigmaR, sigmaX, qOpt, score, network, stateResults, ssNetwork, ssStateResults };
 }
