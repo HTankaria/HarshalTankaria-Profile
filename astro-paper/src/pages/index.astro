@@ -33,34 +33,39 @@ const homePath = getRelativeLocaleUrl(locale, "");
     data-home-path={homePath}
     class="app-layout"
   >
-    <section id="hero" class="border-border border-b pt-10 pb-8">
-      <div class="flex items-baseline gap-3">
+    <section id="hero" class="border-border border-b pt-10 pb-10">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="inline-block w-8 h-0.5 bg-accent rounded-full"></span>
+        <span class="text-accent text-sm font-medium tracking-wide">RF Power Systems · Plasma Power Delivery</span>
+      </div>
+
+      <div class="flex items-baseline gap-3 mt-3">
         <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
           Harshal Tankaria
         </h1>
         <a
           target="_blank"
           href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
-          class="inline-block opacity-40 hover:opacity-80 transition-opacity"
+          class="inline-block opacity-30 hover:opacity-70 transition-opacity"
           aria-label="RSS Feed"
           title="RSS Feed"
         >
-          <IconRss width={16} height={16} class="stroke-accent stroke-3 rtl:-rotate-90" />
+          <IconRss width={14} height={14} class="stroke-foreground stroke-2 rtl:-rotate-90" />
           <span class="sr-only">RSS Feed</span>
         </a>
       </div>
 
-      <p class="mt-3 mb-5 text-sm font-medium tracking-wide opacity-60 uppercase">
-        Electrical Engineer — RF Power Systems · Plasma Power Delivery
+      <p class="mt-2 mb-1 text-base opacity-55 font-normal">
+        Electrical engineer building high-power RF generators and plasma delivery systems for semiconductor capital equipment.
       </p>
 
-      <p class="text-base leading-relaxed opacity-85 max-w-2xl">
-        I write here about engineering questions I find worth thinking about — the design of RF systems for plasma processing, viewed from the generator engineer's perspective. Matching networks as control problems, generator topology under dynamic loads, and the practical physics of plasma as seen from the source terminals.
+      <p class="mt-4 text-base leading-relaxed opacity-80 max-w-2xl">
+        I write here about problems I find genuinely interesting — matching networks as control problems, generator topology under dynamic plasma loads, pulsed RF metrology, and the messy reality of turning good physics into reliable hardware. If you work on similar things, I'd love to hear from you.
       </p>
 
       {
         socials.length > 0 && (
-          <div class="mt-5">
+          <div class="mt-6">
             <Socials />
           </div>
         )
