@@ -29,8 +29,8 @@ export default defineAstroPaperConfig({
   },
   socials: [
     { name: "github",   url: "https://github.com/HTankaria" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/harshaltankaria/" },
-    { name: "mail",     url: "mailto:harshalt90@gmail.com" },
+    { name: "linkedin", url: "https://www.linkedin.com/in/htankaria/" },
+    { name: "mail",     url: "mailto:harshal@tankaria.dev" },
   ],
   shareLinks: [
     { name: "x",        url: "https://x.com/intent/post?url=" },
