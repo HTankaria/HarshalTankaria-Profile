@@ -1,4 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="16" fill="#0f172a"/>
-  <text x="64" y="88" font-family="Georgia, serif" font-size="68" font-weight="700" fill="#f97316" text-anchor="middle">HT</text>
+  <!-- Background -->
+  <rect width="128" height="128" rx="14" fill="#0f172a"/>
+
+  <!-- Smith chart outer boundary circle -->
+  <circle cx="64" cy="64" r="50" fill="none" stroke="#f97316" stroke-width="2.5"/>
+
+  <!-- Constant resistance circles (R=0.5, R=1, R=2) -->
+  <circle cx="81" cy="64" r="33" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.7"/>
+  <circle cx="90" cy="64" r="24" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.7"/>
+  <circle cx="100" cy="64" r="14" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.5"/>
+
+  <!-- Constant reactance arcs (top and bottom) -->
+  <path d="M 114 64 A 50 50 0 0 0 64 14" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+  <path d="M 114 64 A 50 50 0 0 1 64 114" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+  <path d="M 114 64 A 25 25 0 0 0 89 39" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.4"/>
+  <path d="M 114 64 A 25 25 0 0 1 89 89" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.4"/>
+
+  <!-- Horizontal axis -->
+  <line x1="14" y1="64" x2="114" y2="64" stroke="#64748b" stroke-width="1" opacity="0.6"/>
+
+  <!-- Center dot / impedance point -->
+  <circle cx="64" cy="64" r="3.5" fill="#f97316"/>
+
+  <!-- Marker dot (example matching point) -->
+  <circle cx="85" cy="48" r="3" fill="#fbbf24"/>
 </svg>
