@@ -13,37 +13,80 @@ import config from "@/config";
 >
   <Header />
   <Breadcrumb />
-  <Main pageTitle="Areas of Focus" class="app-prose">
-    <h2>High-Power RF Generator Design (350 kHz – 60 MHz, up to 10 kW)</h2>
-    <p>
-      Topology selection, gate drive design, and thermal and protection systems
-      for generators driving plasma loads in semiconductor processing.
-    </p>
+  <Main pageTitle="Areas of Focus">
+    <div class="mt-2 space-y-0 divide-y divide-border">
 
-    <h2>Plasma RF Delivery and Matching Networks</h2>
-    <p>
-      Frequency-tunable and variable-capacitor matching architectures, response
-      time vs. range tradeoffs, and control loops tracking dynamic plasma
-      impedances.
-    </p>
+      <div class="group py-7">
+        <div class="flex gap-4 items-start">
+          <span class="text-accent font-mono text-sm mt-1 shrink-0 select-none">&gt;&gt;</span>
+          <div>
+            <h2 class="text-lg font-semibold leading-snug">High-Power RF Generator Design</h2>
+            <p class="text-sm opacity-50 mb-2">350 kHz – 60 MHz · up to 10 kW</p>
+            <p class="text-sm leading-relaxed opacity-75">
+              Topology selection, gate drive design, and thermal and protection systems
+              for generators driving plasma loads in semiconductor processing.
+            </p>
+          </div>
+        </div>
+      </div>
 
-    <h2>Pulsed RF and Process Control</h2>
-    <p>
-      Synchronous and asynchronous pulsing, multi-level pulse schemes, and the
-      metrology challenges of measuring delivered power under pulsed operation.
-    </p>
+      <div class="group py-7">
+        <div class="flex gap-4 items-start">
+          <span class="text-accent font-mono text-sm mt-1 shrink-0 select-none">&gt;&gt;</span>
+          <div>
+            <h2 class="text-lg font-semibold leading-snug">Plasma RF Delivery and Matching Networks</h2>
+            <p class="text-sm opacity-50 mb-2">Frequency-tunable · Variable-capacitor architectures</p>
+            <p class="text-sm leading-relaxed opacity-75">
+              Response time vs. range tradeoffs, and control loops tracking dynamic plasma
+              impedances across process conditions.
+            </p>
+          </div>
+        </div>
+      </div>
 
-    <h2>Embedded Firmware for RF Systems</h2>
-    <p>
-      Real-time control on STM32 and Digi Rabbit platforms; coordinating RF
-      sequencing, protection, and process telemetry.
-    </p>
+      <div class="group py-7">
+        <div class="flex gap-4 items-start">
+          <span class="text-accent font-mono text-sm mt-1 shrink-0 select-none">&gt;&gt;</span>
+          <div>
+            <h2 class="text-lg font-semibold leading-snug">Pulsed RF and Process Control</h2>
+            <p class="text-sm opacity-50 mb-2">Synchronous · Asynchronous · Multi-level schemes</p>
+            <p class="text-sm leading-relaxed opacity-75">
+              Pulsed power delivery and the metrology challenges of measuring delivered power
+              accurately under pulsed operation.
+            </p>
+          </div>
+        </div>
+      </div>
 
-    <h2>New Product Introduction for Semiconductor Capital Equipment</h2>
-    <p>
-      Cross-functional execution from prototype to production, including design
-      verification, manufacturing transfer, and field reliability.
-    </p>
+      <div class="group py-7">
+        <div class="flex gap-4 items-start">
+          <span class="text-accent font-mono text-sm mt-1 shrink-0 select-none">&gt;&gt;</span>
+          <div>
+            <h2 class="text-lg font-semibold leading-snug">Embedded Firmware for RF Systems</h2>
+            <p class="text-sm opacity-50 mb-2">STM32 · Digi Rabbit · Real-time control</p>
+            <p class="text-sm leading-relaxed opacity-75">
+              Coordinating RF sequencing, protection interlocks, and process telemetry
+              on embedded platforms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="group py-7">
+        <div class="flex gap-4 items-start">
+          <span class="text-accent font-mono text-sm mt-1 shrink-0 select-none">&gt;&gt;</span>
+          <div>
+            <h2 class="text-lg font-semibold leading-snug">New Product Introduction — Semiconductor Capital Equipment</h2>
+            <p class="text-sm opacity-50 mb-2">Prototype → Production · Design verification · Field reliability</p>
+            <p class="text-sm leading-relaxed opacity-75">
+              Cross-functional execution from early prototype through manufacturing transfer,
+              sustaining engineering, and field deployment.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </Main>
   <Footer />
 </Layout>
