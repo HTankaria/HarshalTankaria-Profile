@@ -71,7 +71,7 @@ export default defineConfig({
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.google(),
       fallbacks: ["monospace"],
-      weights: [400, 500],
+      weights: [400, 500, 700],
       styles: ["normal"],
       formats: ["woff", "ttf"],
     },
