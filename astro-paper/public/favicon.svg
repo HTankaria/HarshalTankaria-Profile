@@ -1,27 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- Background -->
-  <rect width="128" height="128" rx="14" fill="#0f172a"/>
-
-  <!-- Smith chart outer boundary circle -->
-  <circle cx="64" cy="64" r="50" fill="none" stroke="#f97316" stroke-width="2.5"/>
-
-  <!-- Constant resistance circles (R=0.5, R=1, R=2) -->
-  <circle cx="81" cy="64" r="33" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.7"/>
-  <circle cx="90" cy="64" r="24" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.7"/>
-  <circle cx="100" cy="64" r="14" fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.5"/>
-
-  <!-- Constant reactance arcs (top and bottom) -->
-  <path d="M 114 64 A 50 50 0 0 0 64 14" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
-  <path d="M 114 64 A 50 50 0 0 1 64 114" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
-  <path d="M 114 64 A 25 25 0 0 0 89 39" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.4"/>
-  <path d="M 114 64 A 25 25 0 0 1 89 89" fill="none" stroke="#94a3b8" stroke-width="1" opacity="0.4"/>
-
-  <!-- Horizontal axis -->
-  <line x1="14" y1="64" x2="114" y2="64" stroke="#64748b" stroke-width="1" opacity="0.6"/>
-
-  <!-- Center dot / impedance point -->
-  <circle cx="64" cy="64" r="3.5" fill="#f97316"/>
-
-  <!-- Marker dot (example matching point) -->
-  <circle cx="85" cy="48" r="3" fill="#fbbf24"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="22" fill="#0f172a"/>
+  <text x="88" y="130" font-family="Georgia,serif" font-size="78" font-weight="900" fill="#ffffff" text-anchor="middle">HT</text>
+  <circle cx="152" cy="52" r="6" fill="#f97316"/>
+  <path d="M 140 40 A 17 17 0 0 1 164 64" fill="none" stroke="#f97316" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 130 30 A 32 32 0 0 1 174 74" fill="none" stroke="#f97316" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 120 20 A 48 48 0 0 1 184 84" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <path d="M 110 12 A 64 64 0 0 1 192 94" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
 </svg>
