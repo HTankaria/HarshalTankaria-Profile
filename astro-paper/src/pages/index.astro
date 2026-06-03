@@ -33,39 +33,34 @@ const homePath = getRelativeLocaleUrl(locale, "");
     data-home-path={homePath}
     class="app-layout"
   >
-    <section id="hero" class="border-border border-b pt-8 pb-6">
-      <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Harshal Tankaria
-      </h1>
-      <a
-        target="_blank"
-        href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
-        class="inline-block"
-        aria-label="RSS Feed"
-        title="RSS Feed"
-      >
-        <IconRss
-          width={20}
-          height={20}
-          class="stroke-accent scale-125 stroke-3 rtl:-rotate-90"
-        />
-        <span class="sr-only">RSS Feed</span>
-      </a>
+    <section id="hero" class="border-border border-b pt-10 pb-8">
+      <div class="flex items-baseline gap-3">
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+          Harshal Tankaria
+        </h1>
+        <a
+          target="_blank"
+          href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
+          class="inline-block opacity-40 hover:opacity-80 transition-opacity"
+          aria-label="RSS Feed"
+          title="RSS Feed"
+        >
+          <IconRss width={16} height={16} class="stroke-accent stroke-3 rtl:-rotate-90" />
+          <span class="sr-only">RSS Feed</span>
+        </a>
+      </div>
 
-      <p class="mt-1 mb-4 text-base font-medium opacity-75">
-        Electrical Engineer — RF power systems engineer specializing in high-power generator design and plasma RF delivery for semiconductor capital equipment.
+      <p class="mt-3 mb-5 text-sm font-medium tracking-wide opacity-60 uppercase">
+        Electrical Engineer — RF Power Systems · Plasma Power Delivery
       </p>
 
-      <p>
+      <p class="text-base leading-relaxed opacity-85 max-w-2xl">
         I write here about engineering questions I find worth thinking about — the design of RF systems for plasma processing, viewed from the generator engineer's perspective. Matching networks as control problems, generator topology under dynamic loads, and the practical physics of plasma as seen from the source terminals.
       </p>
 
       {
         socials.length > 0 && (
-          <div class="mt-4 flex max-sm:flex-col sm:items-center">
-            <div class="me-2 mb-1 whitespace-nowrap sm:mb-0">
-              {t.home.socialLinks}:
-            </div>
+          <div class="mt-5">
             <Socials />
           </div>
         )

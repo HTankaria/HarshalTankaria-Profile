@@ -7,7 +7,8 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --font-app: var(--font-google-sans-code);
+  --font-app: var(--font-inter);
+  --font-mono: var(--font-google-sans-code);
 }
 
 /* Light theme values */
@@ -24,11 +25,11 @@
 
 /* Dark theme values */
 [data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
+  --background: #1a1f2e;
+  --foreground: #e8ecf4;
+  --accent: #f97316;
   --accent-foreground: #ffffff;
-  --muted: #343f60;
-  --muted-foreground: #afb9ca;
-  --border: #ab4b08;
+  --muted: #2a3347;
+  --muted-foreground: #8896b0;
+  --border: #2e3a52;
 }

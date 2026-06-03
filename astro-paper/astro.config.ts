@@ -58,12 +58,21 @@ export default defineConfig({
   },
   fonts: [
     {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.google(),
+      fallbacks: ["system-ui", "sans-serif"],
+      weights: [300, 400, 500, 600, 700],
+      styles: ["normal", "italic"],
+      formats: ["woff", "ttf"],
+    },
+    {
       name: "Google Sans Code",
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.google(),
       fallbacks: ["monospace"],
-      weights: [300, 400, 500, 600, 700],
-      styles: ["normal", "italic"],
+      weights: [400, 500],
+      styles: ["normal"],
       formats: ["woff", "ttf"],
     },
   ],
