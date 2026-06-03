@@ -1,0 +1,162 @@
+---
+# ─── REQUIRED ────────────────────────────────────────────────────────────────
+title: "Your Post Title Here"
+description: "One or two sentence summary shown in cards and SEO meta tags."
+pubDatetime: 2026-06-03T12:00:00Z   # publication date/time (ISO 8601)
+tags: [engineering, signal-processing, tutorial]
+
+# ─── OPTIONAL ────────────────────────────────────────────────────────────────
+author: "Harshal Tankaria"          # defaults to site author if omitted
+featured: false                     # true → shows in Featured section on homepage
+draft: false                        # true → invisible in production, visible in dev
+modDatetime: 2026-06-03T12:00:00Z   # show "Updated" date if you revise the post
+ogImage: ./assets/cover.png         # social share image (relative to THIS file)
+---
+
+import { Image } from 'astro:assets';
+
+{/* ── IMAGES ─────────────────────────────────────────────────────────────────
+    Put image files in a folder next to this .mdx file:
+
+      src/content/posts/
+        my-post/
+          index.mdx         ← this file
+          assets/
+            cover.png
+            smith-chart.png
+            plot.svg
+
+    Reference them with a relative path:
+*/}
+
+## Section heading
+
+Normal paragraph. Write in plain Markdown.
+
+---
+
+## Images & Figures
+
+### Inline image (Markdown syntax)
+
+![Alt text describing the image](./assets/cover.png)
+
+### Image with caption (Astro Image component — optimised, lazy-loaded)
+
+<figure>
+  <Image src={import('./assets/smith-chart.png')} alt="Smith chart showing impedance matching network" />
+  <figcaption>Fig 1. Impedance matching network plotted on a Smith chart.</figcaption>
+</figure>
+
+### SVG plots (vector, scales perfectly)
+
+![Frequency response plot](./assets/plot.svg)
+
+---
+
+## LaTeX / Math Equations
+
+Inline math: $Z = R + jX$ or $S_{11} = \frac{Z_L - Z_0}{Z_L + Z_0}$
+
+Block equation (display mode):
+
+$$
+\Gamma = \frac{Z_L - Z_0}{Z_L + Z_0}
+$$
+
+$$
+\mathbf{S} =
+\begin{bmatrix}
+  S_{11} & S_{12} \\
+  S_{21} & S_{22}
+\end{bmatrix}
+$$
+
+Multi-line aligned equation:
+
+$$
+\begin{aligned}
+  P_{reflected} &= |\Gamma|^2 \cdot P_{incident} \\
+  \text{VSWR}   &= \frac{1 + |\Gamma|}{1 - |\Gamma|}
+\end{aligned}
+$$
+
+---
+
+## Smith Charts & RF Plots
+
+Export your Smith chart from your tool of choice as a **PNG or SVG** and drop it
+in the `assets/` folder next to this file.
+
+**From common tools:**
+- **MATLAB** → `saveas(fig, 'smith.svg')` or `exportgraphics`
+- **Python (scikit-rf)** → `network.plot_s_smith(); plt.savefig('smith.svg')`
+- **ADS / Microwave Office** → File → Export → SVG/PNG
+- **Qucs / LTspice** → screenshot or export
+
+Then embed it like any image:
+
+![Smith chart](./assets/smith-chart.svg)
+
+---
+
+## Code blocks
+
+```python
+import skrf as rf
+
+ntwk = rf.Network('dut.s2p')
+ntwk.plot_s_smith(m=0, n=0)
+```
+
+```matlab
+s = sparameters('dut.s2p');
+smithplot(s, 1, 1)
+```
+
+---
+
+## Tables
+
+| Parameter | Value  | Unit |
+|-----------|--------|------|
+| $f_0$     | 2.4    | GHz  |
+| $Z_0$     | 50     | Ω    |
+| $S_{11}$  | −18    | dB   |
+| VSWR      | 1.28   | —    |
+
+---
+
+## Callouts / Notes
+
+> **Note:** Use blockquotes for important callouts.
+
+> **Warning:** Something to be careful about.
+
+---
+
+## Embeds
+
+### YouTube
+
+<iframe
+  width="100%"
+  style="aspect-ratio: 16/9;"
+  src="https://www.youtube.com/embed/VIDEO_ID"
+  title="Video title"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen
+></iframe>
+
+### Spotify (for Music Corner posts)
+
+<iframe
+  style="border-radius:12px"
+  src="https://open.spotify.com/embed/track/TRACK_ID"
+  width="100%"
+  height="152"
+  frameBorder="0"
+  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+  loading="lazy"
+></iframe>
