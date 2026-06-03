@@ -3,8 +3,8 @@ import { defineAstroPaperConfig } from "./src/types/config";
 export default defineAstroPaperConfig({
   site: {
     url: "https://tankaria.dev/",
-    title: "Tankaria's Lab",
-    description: "Personal site and blog of Harshal Tankaria — engineering, technology, and ideas.",
+    title: "Harshal Tankaria",
+    description: "Electrical engineer (RF Power Products) specializing in high-power generator design and plasma RF delivery for semiconductor capital equipment.",
     author: "Harshal Tankaria",
     profile: "https://tankaria.dev",
     ogImage: "default-og.jpg",

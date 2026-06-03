@@ -34,4 +34,32 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { posts, pages };
+const projects = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/projects" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    status: z.enum(["In progress", "Complete", "Archived"]).default("In progress"),
+    tags: z.array(z.string()).default([]),
+    links: z
+      .object({
+        github: z.string().optional(),
+        demo: z.string().optional(),
+        writeup: z.string().optional(),
+      })
+      .optional(),
+  }),
+});
+
+const talks = defineCollection({
+  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/talks" }),
+  schema: z.object({
+    title: z.string(),
+    venue: z.string(),
+    date: z.date(),
+    abstract: z.string().optional(),
+    link: z.string().optional(),
+  }),
+});
+
+export const collections = { posts, pages, projects, talks };

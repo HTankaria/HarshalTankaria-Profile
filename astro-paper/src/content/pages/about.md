@@ -1,24 +1,10 @@
 ---
 title: "About"
-description: "About Harshal Tankaria — engineer, builder, writer."
+description: "About Harshal Tankaria — electrical engineer specializing in RF power systems and plasma RF delivery."
 ---
 
-Hi, I'm **Harshal Tankaria** — an engineer based in the US, working at the intersection of RF/microwave engineering, software, and data.
+I'm an electrical engineer working on high-power RF generators for plasma processing in semiconductor capital equipment. My work covers generator topology, matching network design, embedded control, and the systems-level behavior of RF delivery into dynamic plasma loads.
 
-I built tankaria.dev as a space to think out loud — technical deep-dives, ideas worth sharing, and the occasional rabbit hole I couldn't stop exploring.
+Approximately eight years in the field. Generators in the 350 kHz to 60 MHz range, output power to 10 kW, spanning Class C through resonant topologies. MS in Electrical and Computer Engineering from Worcester Polytechnic Institute. Member of the IEEE and the IEEE Power Electronics Society.
 
-## What I do
-
-My background is in RF and microwave engineering — antenna systems, signal processing, and the hardware-software boundary. I'm also deeply interested in how software tools, data pipelines, and applied ML are changing the way engineers work.
-
-## What you'll find here
-
-- **Technical posts** — RF/microwave theory, signal processing, simulation, and hardware
-- **Engineering + software** — tooling, automation, and building things that work
-- **Music Corner** — what I'm listening to, playlists, and the occasional artist deep-dive
-
-## Get in touch
-
-Reach me at [harshal@tankaria.dev](mailto:harshal@tankaria.dev) or on [LinkedIn](https://www.linkedin.com/in/htankaria/).
-
-Code and projects on [GitHub](https://github.com/HTankaria).
+All content here uses public sources and generic engineering analysis. Nothing is proprietary to any current or former employer. Reach me at [harshal@tankaria.dev](mailto:harshal@tankaria.dev).

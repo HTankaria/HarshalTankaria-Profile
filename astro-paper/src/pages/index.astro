@@ -35,7 +35,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
   >
     <section id="hero" class="border-border border-b pt-8 pb-6">
       <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Hi, I'm Harshal
+        Harshal Tankaria
       </h1>
       <a
         target="_blank"
@@ -52,24 +52,14 @@ const homePath = getRelativeLocaleUrl(locale, "");
         <span class="sr-only">RSS Feed</span>
       </a>
 
-      <p class="text-sm font-medium opacity-60 tracking-wide -mt-2 mb-3">
-        Electrical Engineer &nbsp;·&nbsp; RF Power Systems Engineering &nbsp;·&nbsp; Plasma Power Delivery
+      <p class="mt-1 mb-4 text-base font-medium opacity-75">
+        Senior RF engineer specializing in high-power generator design and plasma RF delivery for semiconductor capital equipment.
       </p>
 
       <p>
-        Engineer, builder, and occasional writer. I work at the intersection of
-        RF power systems, plasma technology, and semiconductor processing — and
-        write about things I find worth thinking about.
+        I write here about engineering questions I find worth thinking about — the design of RF systems for plasma processing, viewed from the generator engineer's perspective. Matching networks as control problems, generator topology under dynamic loads, and the practical physics of plasma as seen from the source terminals.
       </p>
-      <p class="mt-2">
-        Browse my <LinkButton
-          class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="/posts/"
-        >posts</LinkButton> or learn more <LinkButton
-          class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="/about/"
-        >about me</LinkButton>.
-      </p>
+
       {
         socials.length > 0 && (
           <div class="mt-4 flex max-sm:flex-col sm:items-center">
@@ -125,15 +115,6 @@ const homePath = getRelativeLocaleUrl(locale, "");
       </LinkButton>
     </div>
 
-    <section id="music-corner" class="border-border border-t pt-12 pb-6">
-      <h2 class="text-2xl font-semibold tracking-wide">🎵 Music Corner</h2>
-      <p class="mt-3 text-sm leading-relaxed opacity-80">
-        Music I'm listening to, playlists I keep coming back to, and the
-        occasional rabbit hole into an artist or genre. This is the non-tech
-        corner of the site.
-      </p>
-      <p class="mt-3 text-sm opacity-60 italic">Coming soon — curations in progress.</p>
-    </section>
   </main>
   <Footer />
 </Layout>

@@ -52,7 +52,7 @@ const isActive = (path: string) => {
       href={getRelativeLocaleUrl(locale, "")}
       class="absolute py-1 flex items-center gap-2 whitespace-nowrap sm:static sm:my-auto"
     >
-      <img src="/favicon.svg" alt="Tankaria's Lab logo" width="30" height="30" />
+      <img src="/favicon.svg" alt="Harshal Tankaria" width="30" height="30" />
       <span class="text-xl font-semibold sm:text-2xl">Harshal Tankaria</span>
     </a>
     <nav
@@ -85,10 +85,26 @@ const isActive = (path: string) => {
         </li>
         <li class="col-span-2">
           <a
-            href={getRelativeLocaleUrl(locale, "tags")}
-            class:list={{ "active-nav": isActive("/tags") }}
+            href={getRelativeLocaleUrl(locale, "projects")}
+            class:list={{ "active-nav": isActive("/projects") }}
           >
-            {t.nav.tags}
+            Projects
+          </a>
+        </li>
+        <li class="col-span-2">
+          <a
+            href={getRelativeLocaleUrl(locale, "talks")}
+            class:list={{ "active-nav": isActive("/talks") }}
+          >
+            Talks
+          </a>
+        </li>
+        <li class="col-span-2">
+          <a
+            href={getRelativeLocaleUrl(locale, "focus")}
+            class:list={{ "active-nav": isActive("/focus") }}
+          >
+            Focus
           </a>
         </li>
         <li class="col-span-2">
