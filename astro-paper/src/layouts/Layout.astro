@@ -118,71 +118,78 @@ const rssHref = getRelativeLocaleUrl(
   <body
     class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"
   >
-    <!-- PCB trace strips — visible only on very wide screens -->
-    <div class="pointer-events-none fixed inset-y-0 left-0 w-20 hidden 2xl:block" aria-hidden="true" style="color: var(--color-accent); opacity: 0.18;">
+    <!-- PCB trace strips — aligned to content column edges, visible at lg+ -->
+    <div
+      class="pointer-events-none fixed inset-y-0 w-20 hidden lg:block"
+      aria-hidden="true"
+      style="right: calc(50% + 24rem); color: var(--color-accent); opacity: 0.22;"
+    >
       <svg width="80" height="100%" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="pcb-left" x="0" y="0" width="80" height="200" patternUnits="userSpaceOnUse">
-            <!-- main vertical bus traces -->
-            <line x1="52" y1="0" x2="52" y2="200" stroke="currentColor" stroke-width="1.5"/>
-            <line x1="68" y1="0" x2="68" y2="200" stroke="currentColor" stroke-width="1"/>
-            <!-- horizontal branch at y=35 -->
-            <line x1="52" y1="35" x2="30" y2="35" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="26" y="31" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <rect x="48" y="31" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <!-- cross-connect at y=70 -->
-            <line x1="52" y1="70" x2="68" y2="70" stroke="currentColor" stroke-width="1"/>
-            <!-- via on main trace y=100 -->
-            <circle cx="52" cy="100" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <circle cx="52" cy="100" r="2" fill="currentColor"/>
-            <!-- horizontal branch at y=130 -->
-            <line x1="52" y1="130" x2="34" y2="130" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="30" y="126" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <rect x="48" y="126" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <!-- small via on secondary trace y=155 -->
-            <circle cx="68" cy="155" r="4" fill="none" stroke="currentColor" stroke-width="1"/>
-            <circle cx="68" cy="155" r="1.5" fill="currentColor"/>
-            <!-- short stub at y=180 -->
-            <line x1="68" y1="180" x2="52" y2="180" stroke="currentColor" stroke-width="1"/>
-            <rect x="48" y="176" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <!-- main vertical bus traces — inner edge closest to content -->
+            <line x1="68" y1="0" x2="68" y2="200" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="52" y1="0" x2="52" y2="200" stroke="currentColor" stroke-width="1"/>
+            <!-- horizontal branch at y=35 going left (away from content) -->
+            <line x1="52" y1="35" x2="28" y2="35" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="24" y="31" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="64" y="31" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <!-- cross-connect at y=72 -->
+            <line x1="52" y1="72" x2="68" y2="72" stroke="currentColor" stroke-width="1"/>
+            <!-- via on inner trace y=105 -->
+            <circle cx="68" cy="105" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="68" cy="105" r="2" fill="currentColor"/>
+            <!-- horizontal branch at y=135 -->
+            <line x1="68" y1="135" x2="40" y2="135" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="36" y="131" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="64" y="131" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <!-- small via on outer trace y=162 -->
+            <circle cx="52" cy="162" r="4" fill="none" stroke="currentColor" stroke-width="1"/>
+            <circle cx="52" cy="162" r="1.5" fill="currentColor"/>
+            <!-- short stub at y=183 -->
+            <line x1="52" y1="183" x2="68" y2="183" stroke="currentColor" stroke-width="1"/>
+            <rect x="64" y="179" width="8" height="8" rx="1.5" fill="currentColor"/>
           </pattern>
         </defs>
         <rect width="80" height="100%" fill="url(#pcb-left)"/>
       </svg>
     </div>
 
-    <div class="pointer-events-none fixed inset-y-0 right-0 w-20 hidden 2xl:block" aria-hidden="true" style="color: var(--color-accent); opacity: 0.18;">
+    <div
+      class="pointer-events-none fixed inset-y-0 w-20 hidden lg:block"
+      aria-hidden="true"
+      style="left: calc(50% + 24rem); color: var(--color-accent); opacity: 0.22;"
+    >
       <svg width="80" height="100%" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="pcb-right" x="0" y="0" width="80" height="200" patternUnits="userSpaceOnUse">
-            <!-- mirrored: main traces at x=12 and x=28 -->
-            <line x1="12" y1="0" x2="12" y2="200" stroke="currentColor" stroke-width="1"/>
-            <line x1="28" y1="0" x2="28" y2="200" stroke="currentColor" stroke-width="1.5"/>
-            <!-- horizontal branch at y=50 -->
-            <line x1="28" y1="50" x2="50" y2="50" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="24" y="46" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <rect x="46" y="46" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <!-- cross-connect at y=90 -->
-            <line x1="12" y1="90" x2="28" y2="90" stroke="currentColor" stroke-width="1"/>
-            <!-- via on main trace y=115 -->
-            <circle cx="28" cy="115" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-            <circle cx="28" cy="115" r="2" fill="currentColor"/>
-            <!-- horizontal branch at y=145 -->
-            <line x1="28" y1="145" x2="52" y2="145" stroke="currentColor" stroke-width="1.5"/>
-            <rect x="24" y="141" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <rect x="48" y="141" width="8" height="8" rx="1.5" fill="currentColor"/>
-            <!-- small via on secondary trace y=168 -->
-            <circle cx="12" cy="168" r="4" fill="none" stroke="currentColor" stroke-width="1"/>
-            <circle cx="12" cy="168" r="1.5" fill="currentColor"/>
-            <!-- stub at y=190 -->
+            <!-- inner trace closest to content on left -->
+            <line x1="12" y1="0" x2="12" y2="200" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="28" y1="0" x2="28" y2="200" stroke="currentColor" stroke-width="1"/>
+            <!-- horizontal branch at y=50 going right -->
+            <line x1="12" y1="50" x2="44" y2="50" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="8" y="46" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="40" y="46" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <!-- cross-connect at y=88 -->
+            <line x1="12" y1="88" x2="28" y2="88" stroke="currentColor" stroke-width="1"/>
+            <!-- via on inner trace y=118 -->
+            <circle cx="12" cy="118" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="118" r="2" fill="currentColor"/>
+            <!-- horizontal branch at y=148 -->
+            <line x1="12" y1="148" x2="46" y2="148" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="8" y="144" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="42" y="144" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <!-- small via on outer trace y=172 -->
+            <circle cx="28" cy="172" r="4" fill="none" stroke="currentColor" stroke-width="1"/>
+            <circle cx="28" cy="172" r="1.5" fill="currentColor"/>
+            <!-- short stub at y=190 -->
             <line x1="12" y1="190" x2="28" y2="190" stroke="currentColor" stroke-width="1"/>
-            <rect x="24" y="186" width="8" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="8" y="186" width="8" height="8" rx="1.5" fill="currentColor"/>
           </pattern>
         </defs>
         <rect width="80" height="100%" fill="url(#pcb-right)"/>
       </svg>
     </div>
-
     <slot />
     <script>
       import "@/scripts/theme";
