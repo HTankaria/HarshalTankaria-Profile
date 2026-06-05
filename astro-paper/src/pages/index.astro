@@ -108,12 +108,23 @@ const homePath = getRelativeLocaleUrl(locale, "");
       )
     }
 
-    <div class="my-8 text-center">
-      <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
-        {t.home.allPosts}
-        <IconArrowRight class="inline-block rtl:-rotate-180" />
-      </LinkButton>
-    </div>
+    {
+      sortedPosts.length === 0 ? (
+        <p class="mt-10 mb-6 text-sm opacity-65">
+          First essays publishing soon. In the meantime, see{" "}
+          <a href="/focus" class="text-accent underline decoration-dashed underline-offset-4 hover:opacity-80">Areas of Focus</a>
+          {" "}or{" "}
+          <a href="/projects" class="text-accent underline decoration-dashed underline-offset-4 hover:opacity-80">Projects</a>.
+        </p>
+      ) : (
+        <div class="my-8 text-center">
+          <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
+            {t.home.allPosts}
+            <IconArrowRight class="inline-block rtl:-rotate-180" />
+          </LinkButton>
+        </div>
+      )
+    }
 
   </main>
   <Footer />
