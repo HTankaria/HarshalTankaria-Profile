@@ -1,5 +1,5 @@
 {
-  "name": "rf-power-assistant",
+  "name": "parts-db-helper",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,7 +12,6 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "recharts": "^2.12.7",
     "lucide-react": "^0.441.0"
   },
   "devDependencies": {
