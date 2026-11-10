@@ -1,0 +1,42 @@
+========================================================================
+ 13.56 MHz Plasma Impedance Simulator - v0.1 (golden reference)
+========================================================================
+f0 = 13.56 MHz   Fs = 108.48 MSPS   (8 samples/cycle)   ADC 14-bit
+P = 1000 W   V = 273.66 Vrms (387.01 Vpk)   I = 7.4536 Arms (10.5409 Apk)
+
+Actual Z:     18.000 - j32.000 ohm
+Estimated Z:  17.9967 - j31.9956 ohm   [14-bit ADC, 12 cycles]
+Magnitude:    36.7097 ohm   (actual 36.7151)
+Phase:        -60.6434 deg  (actual -60.6422)
+Power:        999.94 W
+
+--- ideal ---
+Window     Samples       Time      R Error      X Error    |Z| Error    Phase Err
+1 cycle          8   73.75 ns    3.553e-15   -7.105e-15    7.105e-15    0.000e+00
+2 cycles        16  147.49 ns    0.000e+00    0.000e+00    0.000e+00    0.000e+00
+4 cycles        32  294.99 ns   -3.553e-15   -1.421e-14    7.105e-15   -2.132e-14
+8 cycles        64  589.97 ns    3.553e-15   -1.421e-14    1.421e-14   -7.105e-15
+12 cycles       96  884.96 ns    3.553e-15   -7.105e-15    7.105e-15    0.000e+00
+
+--- adc14 ---
+Window     Samples       Time      R Error      X Error    |Z| Error    Phase Err
+1 cycle          8   73.75 ns   -3.319e-03    4.362e-03   -5.429e-03   -1.177e-03
+2 cycles        16  147.49 ns   -3.319e-03    4.362e-03   -5.429e-03   -1.177e-03
+4 cycles        32  294.99 ns   -3.319e-03    4.362e-03   -5.429e-03   -1.177e-03
+8 cycles        64  589.97 ns   -3.319e-03    4.362e-03   -5.429e-03   -1.177e-03
+12 cycles       96  884.96 ns   -3.319e-03    4.362e-03   -5.429e-03   -1.177e-03
+
+--- adc14+noise (RMS) ---
+Window     Samples       Time      R Error      X Error    |Z| Error    Phase Err
+1 cycle          8   73.75 ns    3.115e-02    3.168e-02    3.187e-02    4.830e-02
+2 cycles        16  147.49 ns    2.160e-02    2.142e-02    2.155e-02    3.351e-02
+4 cycles        32  294.99 ns    1.496e-02    1.586e-02    1.554e-02    2.388e-02
+8 cycles        64  589.97 ns    1.106e-02    1.119e-02    1.131e-02    1.706e-02
+12 cycles       96  884.96 ns    8.962e-03    8.901e-03    8.938e-03    1.393e-02
+
+Errors in ohm (R, X, |Z|) and degrees (phase).
+Latency budget: 1 us = 13.56 RF cycles = 108.5 ADC samples = 200 clocks @ 200 MHz
+saved output/v_waveform.png
+saved output/i_waveform.png
+saved output/vi_overlay.png
+saved output/error_vs_window.png
